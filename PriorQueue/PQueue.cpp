@@ -5,10 +5,10 @@
 
 void UpdateDown( PQItem* pTab, int l, int p );
 void UpdateUp( PQItem* pTab, int l, int p );
-PQItem* AllocateItem( );
 
 PQueue* PQInit( int size )
 { 
+	if( size<1 ) return NULL;
 	PQueue* pRes = (PQueue*)calloc( 1, sizeof( PQueue ) );
 	if( !pRes ) return NULL;
 	PQItem* pItemTab = (PQItem*)calloc( size, sizeof( PQItem ) );
@@ -20,24 +20,21 @@ PQueue* PQInit( int size )
 }
 int PQisEmpty( PQueue* q )
 { 
-	if( !q ) return 1;
-	return !q->nPQCurrSize ;
+	return !(q->nPQCurrSize && q) ;
 }
 int PQSize( PQueue* q )
 {
-	if( !q ) return 0;
-	return q->nPQCurrSize;
+	return !q ? 0 : q->nPQCurrSize;
 }
 int PQMaxPrior( PQueue* q )
 {
-	if( PQisEmpty( q ) ) return PRIOR_ERROR;
-	return q->pPQueue->nPrior;
+	return PQisEmpty( q ) ? PRIOR_ERROR : q->pPQueue->nPrior;
 }
 int PQEnqueue( PQueue* q, PQINFO* pInfo, int prior )
 { 
 	if( !q ) return 0;
 	if( PQSize( q )>=q->nPQSize ) return 0;
-	PQItem* pNew = AllocateItem( );
+	PQItem* pNew = (PQItem*)calloc( 1, sizeof( PQItem ) );
 	if( !pNew ) return 0;
 	pNew->pInfo = pInfo;
 	pNew->nPrior = prior;
@@ -48,46 +45,44 @@ int PQEnqueue( PQueue* q, PQINFO* pInfo, int prior )
 PQINFO* PQDequeue( PQueue* q )
 { 
 	if( PQisEmpty(q) ) return NULL;
-	PQINFO* pInfo = AllocateUsertype( );
-	if( !pInfo ) return NULL;
-	pInfo = q->pPQueue->pInfo;
+	PQINFO* pInfo = q->pPQueue->pInfo;
 	q->pPQueue[0]= q->pPQueue[--( q->nPQCurrSize )];
 	UpdateDown( q->pPQueue, 0, PQSize(q)-1 );
 	return pInfo;
 }
 void PQClear( PQueue* q, void( *FreeMem )( const void* ) )
 {
-	while( !PQisEmpty )
+	while( !PQisEmpty(q) )
 		FreeMem( PQDequeue( q ) );
 }
 void PQRelease( PQueue** q, void( *FreeMem )( const void* ) )
 {
-	if( !( *q ) ) return;
+	if( !( *q ) )
+	{
+		printf( "Error: Queue does not exist (1)" );
+		return;
+	}
 	PQClear( *q, FreeMem );
 	free( (*q)->pPQueue );
 	free( *q );
 }
-void PQPrint( PQueue* q, void( *PrintInfo )( const void* ) )
+void PQPrint( PQueue* q, void( *PrintInfo )( const void* ), int i )
 {
-	if( !q ) return;
-	printf( "######## Queue: ########\n" );
-	for( int i = 0; i<PQSize(q); i++ )
+	if( !q )
 	{
-		printf( "%d. prior: %d  Item: ", i+1, q->pPQueue[i].nPrior );
-		PrintInfo( q->pPQueue[i].pInfo );
-
+		printf( "Error: Queue does not exist (2)" );
+		return;
 	}
-	printf( "########################\n" );
+	if( i>=PQSize( q )||i<0 ) return;
+	printf( "prior: %d\tItem: ", q->pPQueue[i].nPrior );
+	PrintInfo( q->pPQueue[i].pInfo );
+	printf( "\t(%d)\n", i );
+	PQPrint( q, PrintInfo, 2*i+1 );
+	PQPrint( q, PrintInfo, 2*i+2 );
 }
 int PQSetPrior( PQueue* q, PQINFO* pInfo,int prior, int( *CompareInfo )( const void*, const void* ) )
 { 
-	int index = PQFind( q, pInfo, CompareInfo );
-	if( ( index>=0 )&&( index<PQSize( q ) ) ) return PRIOR_ERROR;
-	int res = q->pPQueue[index].nPrior;
-	q->pPQueue[index].nPrior = prior;
-	UpdateDown( q->pPQueue, index, PQSize(q)-1 );
-	UpdateUp( q->pPQueue, 0, index );
-	return res;
+	return PQsetPrior( q, PQFind( q, pInfo, CompareInfo ), prior );
 }
 int PQsetPrior( PQueue* q, int index, int prior )
 { 
@@ -103,16 +98,11 @@ int PQsetPrior( PQueue* q, int index, int prior )
 }
 int PQGetPrior( PQueue* q, PQINFO* pInfo, int( *CompareInfo )( const void*, const void* ) )
 {
-	int index = PQFind( q, pInfo, CompareInfo );
-	if( ( index>=0 )&&( index<PQSize( q ) ) ) return PRIOR_ERROR;
-	int res = q->pPQueue[index].nPrior;
-	return res;
+	return PQgetPrior( q, PQFind( q, pInfo, CompareInfo ) );
 }
 int PQgetPrior( PQueue* q, int index )
 {
-	int res = PRIOR_ERROR;
-	if( ( index>=0 )&&( index<PQSize(q) ) ) res = q->pPQueue->nPrior;
-	return res;
+	return ( index>=0 )&&( index<PQSize( q ) ) ? q->pPQueue->nPrior : PRIOR_ERROR;
 }
 int PQFind( PQueue* q, PQINFO* pInfo, int( *CompareInfo )( const void*, const void* ) )
 { 
@@ -120,23 +110,16 @@ int PQFind( PQueue* q, PQINFO* pInfo, int( *CompareInfo )( const void*, const vo
 	int i = 0;
 	for(; i<q->nPQCurrSize; i++ )
 		if( !CompareInfo( q->pPQueue[i].pInfo, pInfo ) ) break;
-	if( i>=q->nPQCurrSize ) return POS_ERROR;
-	return i;
+	return  i>=q->nPQCurrSize  ? POS_ERROR : i;
 }
 
-
-PQItem* AllocateItem( )
-{
-	PQItem* pRes = (PQItem*)calloc( 1, sizeof( PQItem ) );
-	if( !pRes ) return NULL;
-	PQINFO* pInfo = AllocateUsertype( );
-	if( !pInfo ) return NULL;
-	pRes->pInfo = pInfo;
-	pRes->nPrior = PRIOR_ERROR;
-	return pRes;
-}
 void UpdateDown(PQItem* pTab, int l, int p )
 {
+	if( !pTab )
+	{
+		printf( "Error: Array does not exist (1)" );
+		return;
+	}
 	PQItem x = pTab[l];
 	int i = l;
 	int j = 2*l+1;
@@ -152,6 +135,11 @@ void UpdateDown(PQItem* pTab, int l, int p )
 }
 void UpdateUp( PQItem* pTab, int l, int p )
 {
+	if( !pTab )
+	{
+		printf( "Error: Array does not exist (2)" );
+		return;
+	}
 	PQItem x = pTab[p];
 	int i = p;
 	int j = ( i-1 )/2;

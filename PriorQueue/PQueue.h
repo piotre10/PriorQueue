@@ -27,7 +27,7 @@ int PQEnqueue( PQueue* q, PQINFO* pInfo, int prior );
 PQINFO* PQDequeue( PQueue* q  );
 void PQClear( PQueue* q, void(*FreeMem)(const void*) );
 void PQRelease( PQueue** q, void( *FreeMem )( const void* ) );
-void PQPrint( PQueue* q, void( *PrintInfo )( const void* ) );
+void PQPrint( PQueue* q, void( *PrintInfo )( const void* ),int i=0 );
 int PQSetPrior( PQueue* q, PQINFO* pInfo,int prior, int( *CompareInfo )( const void*, const void* ) );
 int PQsetPrior( PQueue* q, int index, int prior);
 int PQGetPrior( PQueue* q, PQINFO* pInfo, int( *CompareInfo )( const void*, const void* ) );

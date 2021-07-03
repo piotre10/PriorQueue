@@ -84,5 +84,5 @@ int CompareUsertype( const void* pItem1, const void* pItem2 )
 void PrintItem( const void* pItem )
 {
 	PQINFO* pItem2 = (PQINFO*)pItem;
-	printf( "nKey: %d\tpTab: %d %d \n", pItem2->nKey, pItem2->pTab[0], pItem2->pTab[1] );
+	printf( "nKey: %d\tpTab: %d %d ", pItem2->nKey, pItem2->pTab[0], pItem2->pTab[1] );
 }
