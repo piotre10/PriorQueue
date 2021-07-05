@@ -11,11 +11,9 @@ PQueue* PQInit( int size )
 	if( size<1 ) return NULL;
 	PQueue* pRes = (PQueue*)calloc( 1, sizeof( PQueue ) );
 	if( !pRes ) return NULL;
-	PQItem* pItemTab = (PQItem*)calloc( size, sizeof( PQItem ) );
-	if( !pItemTab ) return NULL;
-	pRes->pPQueue = pItemTab;
+	pRes->pPQueue = (PQItem*)calloc( size, sizeof( PQItem ) );
+	if( !pRes->pPQueue ) return NULL;
 	pRes->nPQSize = size;
-	pRes->nPQCurrSize = 0;
 	return pRes;
 }
 int PQisEmpty( PQueue* q )
@@ -70,6 +68,7 @@ void PQRelease( PQueue** q, void( *FreeMem )( const void* ) )
 	PQClear( *q, FreeMem );
 	free( (*q)->pPQueue );
 	free( *q );
+	*q = NULL;
 }
 void PQPrint( PQueue* q, void( *PrintInfo )( const void* ), int i )
 {
@@ -85,14 +84,17 @@ void PQPrint( PQueue* q, void( *PrintInfo )( const void* ), int i )
 	PQPrint( q, PrintInfo, 2*i+1 );
 	PQPrint( q, PrintInfo, 2*i+2 );
 }
-int PQSetPrior( PQueue* q, PQINFO* pInfo,int prior, int( *CompareInfo )( const void*, const void* ) )
-{ 
-	return PQsetPrior( q, PQFind( q, pInfo, CompareInfo ), prior ); // CompareInfo == NULL i q == NULL wylapia odpowiednio funkcje PQFind i PQsetPrior wiec nie dawalem oddzielnego sprawdzenia w tej funkcji
+int PQSetPrior( PQueue* q, PQINFO* pInfo, int prior, int( *CompareInfo )( const void*, const void* ) )
+{
+	return PQsetPrior( q, PQFind( q, pInfo, CompareInfo ), prior ); /*CompareInfo == NULL i q == NULL
+		wylapia odpowiednio funkcje PQFind i PQsetPrior i w konsekwencji funkcja i tak zwroci prior error
+		wiec nie dawalem oddzielnego sprawdzenia w tej funkcji*/
 }
 int PQsetPrior( PQueue* q, int index, int prior )
 { 
 	int res = PRIOR_ERROR;
-	if( ( index>=0 )&&( index<PQSize(q) ) )// jeœli q == NULL to PQSize = 0 petla sie nie wykona i funkcja zwroci prior error
+	if( ( index>=0 )&&( index<PQSize(q) ) )
+		// jeœli q == NULL to PQSize = 0 petla sie nie wykona i funkcja zwroci prior error
 	{
 		res = q->pPQueue[index].nPrior;
 		q->pPQueue[index].nPrior = prior;
@@ -103,12 +105,15 @@ int PQsetPrior( PQueue* q, int index, int prior )
 }
 int PQGetPrior( PQueue* q, PQINFO* pInfo, int( *CompareInfo )( const void*, const void* ) )
 {
-	return PQgetPrior( q, PQFind( q, pInfo, CompareInfo ) );// CompareInfo == NULL i q == NULL wylapia odpowiednio funkcje PQFind i PQgetPrior wiec nie dawalem oddzielnego sprawdzenia w tej funkcji
+	return PQgetPrior( q, PQFind( q, pInfo, CompareInfo ) ); /*CompareInfo == NULL i q == NULL
+		wylapia odpowiednio funkcje PQFind i PQgetPrior i w konsekwencji funkcja i tak zwroci prior error
+		wiec nie dawalem oddzielnego sprawdzenia w tej funkcji*/
 }
 
 int PQgetPrior( PQueue* q, int index )
 {
-	return ( index>=0 )&&( index<PQSize( q ) ) ? q->pPQueue->nPrior : PRIOR_ERROR; // jeœli q == NULL to PQSize = 0 i funkcja zwraca prior error
+	return ( index>=0 )&&( index<PQSize( q ) ) ? q->pPQueue->nPrior : PRIOR_ERROR; 
+	// jeœli q == NULL to PQSize = 0 i funkcja zwraca prior error
 }
 int PQFind( PQueue* q, PQINFO* pInfo, int( *CompareInfo )( const void*, const void* ) )
 { 
