@@ -20,7 +20,7 @@ PQueue* PQInit( int size )
 }
 int PQisEmpty( PQueue* q )
 { 
-	return !(q->nPQCurrSize && q) ;
+	return !( q && PQSize( q ) );
 }
 int PQSize( PQueue* q )
 {
@@ -52,12 +52,17 @@ PQINFO* PQDequeue( PQueue* q )
 }
 void PQClear( PQueue* q, void( *FreeMem )( const void* ) )
 {
+	if( !q )
+	{
+		printf( "Error: Queue does not exist (3)" );
+		return;
+	}
 	while( !PQisEmpty(q) )
 		FreeMem( PQDequeue( q ) );
 }
 void PQRelease( PQueue** q, void( *FreeMem )( const void* ) )
 {
-	if( !( *q ) )
+	if( !( q && *q ) )
 	{
 		printf( "Error: Queue does not exist (1)" );
 		return;
@@ -82,35 +87,35 @@ void PQPrint( PQueue* q, void( *PrintInfo )( const void* ), int i )
 }
 int PQSetPrior( PQueue* q, PQINFO* pInfo,int prior, int( *CompareInfo )( const void*, const void* ) )
 { 
-	return PQsetPrior( q, PQFind( q, pInfo, CompareInfo ), prior );
+	return PQsetPrior( q, PQFind( q, pInfo, CompareInfo ), prior ); // CompareInfo == NULL i q == NULL wylapia odpowiednio funkcje PQFind i PQsetPrior wiec nie dawalem oddzielnego sprawdzenia w tej funkcji
 }
 int PQsetPrior( PQueue* q, int index, int prior )
 { 
 	int res = PRIOR_ERROR;
-	if( ( index>=0 )&&( index<PQSize(q) ) )
+	if( ( index>=0 )&&( index<PQSize(q) ) )// jeœli q == NULL to PQSize = 0 petla sie nie wykona i funkcja zwroci prior error
 	{
 		res = q->pPQueue[index].nPrior;
 		q->pPQueue[index].nPrior = prior;
-		UpdateDown( q->pPQueue, index, q->nPQCurrSize-1 );
+		UpdateDown( q->pPQueue, index, PQSize(q)-1 );
 		UpdateUp( q->pPQueue, 0, index );
 	}
 	return res;
 }
 int PQGetPrior( PQueue* q, PQINFO* pInfo, int( *CompareInfo )( const void*, const void* ) )
 {
-	return PQgetPrior( q, PQFind( q, pInfo, CompareInfo ) );
+	return PQgetPrior( q, PQFind( q, pInfo, CompareInfo ) );// CompareInfo == NULL i q == NULL wylapia odpowiednio funkcje PQFind i PQgetPrior wiec nie dawalem oddzielnego sprawdzenia w tej funkcji
 }
+
 int PQgetPrior( PQueue* q, int index )
 {
-	return ( index>=0 )&&( index<PQSize( q ) ) ? q->pPQueue->nPrior : PRIOR_ERROR;
+	return ( index>=0 )&&( index<PQSize( q ) ) ? q->pPQueue->nPrior : PRIOR_ERROR; // jeœli q == NULL to PQSize = 0 i funkcja zwraca prior error
 }
 int PQFind( PQueue* q, PQINFO* pInfo, int( *CompareInfo )( const void*, const void* ) )
 { 
-	if( !q ) return POS_ERROR;
-	int i = 0;
-	for(; i<q->nPQCurrSize; i++ )
-		if( !CompareInfo( q->pPQueue[i].pInfo, pInfo ) ) break;
-	return  i>=q->nPQCurrSize  ? POS_ERROR : i;
+	if( !(q && CompareInfo) ) return POS_ERROR;
+	for(int i=0; i<PQSize(q); i++ )
+		if( !CompareInfo( q->pPQueue[i].pInfo, pInfo ) ) return i;
+	return POS_ERROR;
 }
 
 void UpdateDown(PQItem* pTab, int l, int p )
