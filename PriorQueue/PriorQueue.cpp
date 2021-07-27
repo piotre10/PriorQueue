@@ -22,13 +22,12 @@ int main()
 	}
 	for( int i = 0; i<6; i++ )
 	{
-		PQINFO* pInfo = AllocateUsertype( );
+		PQINFO* pInfo = AllocateUsertype( i );
 		if( !pInfo )
 		{
 			printf( "Error%d: Allocating usertype went wrong", i+1 );
 			return -2;
 		}
-		pInfo->nKey = i+1;
 		int prior = 4*i+3; // 3 7 11 ... 23
 		PQEnqueue( pTestingQueue, pInfo, prior );
 	}
@@ -36,23 +35,21 @@ int main()
 	PrintItem( PQDequeue( pTestingQueue ) );
 	for( int i = 6; i<8; i++ )
 	{
-		PQINFO* pInfo = AllocateUsertype( );
+		PQINFO* pInfo = AllocateUsertype( i );
 		if( !pInfo )
 		{
 			printf( "Error%d: Allocating usertype went wrong", i+1 );
 			return -2;
 		}
-		pInfo->nKey = i+1;
 		int prior = 15*i-80;  // i = 6 -> prior 10 i=7 -> prior 25
 		PQEnqueue( pTestingQueue, pInfo, prior );
 	}
-	PQINFO* pSought = AllocateUsertype( );
+	PQINFO* pSought = AllocateUsertype( 4 );
 	if( !pSought )
 	{
 		printf( "ErrorS: Allocating usertype went wrong" );
 		return -2;
 	}
-	pSought->nKey = 4;
 	int index = PQFind( pTestingQueue, pSought, CompareUsertype );
 	int unique_prior = 2;
 	printf("Index of sought item: %d\n", index);
@@ -70,7 +67,7 @@ int main()
 void FreeUsertype( const void* pItem )
 {
 	PQINFO* pNew = (PQINFO*)pItem;
-	free( pNew->pTab );
+	free( pNew->sName );
 	free( pNew );
 }
 int CompareUsertype( const void* pItem1, const void* pItem2 )
@@ -84,5 +81,5 @@ int CompareUsertype( const void* pItem1, const void* pItem2 )
 void PrintItem( const void* pItem )
 {
 	PQINFO* pItem2 = (PQINFO*)pItem;
-	printf( "nKey: %d\tpTab: %d %d ", pItem2->nKey, pItem2->pTab[0], pItem2->pTab[1] );
+	printf( "nKey: %d\tName: %s", pItem2->nKey, pItem2->sName);
 }

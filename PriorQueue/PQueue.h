@@ -7,16 +7,16 @@
 
 typedef struct 
 {
-	PQINFO* pInfo;      
+	PQINFO* pInfo;    
 	int nPrior;    
 } PQItem;        
 
 
 typedef struct  
 {
-	PQItem* pPQueue;    
-	int nPQSize;     
-	int nPQCurrSize; 
+	PQItem* pPQueue;    // Tablica elementów
+	int nPQSize;      // Maksymalna liczba elementów w kolejce
+	int nPQCurrSize;  // Aktualna liczba elementów w kolejce
 } PQueue;
 
 PQueue* PQInit(int size );

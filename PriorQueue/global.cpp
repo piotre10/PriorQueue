@@ -1,13 +1,15 @@
 #include "global.h"
 #include <stdlib.h>
 
-PQINFO* AllocateUsertype( )
+PQINFO* AllocateUsertype( int n )
 {
 	PQINFO* pItem = (PQINFO*)calloc( 1, sizeof( PQINFO ) );
 	if( !pItem ) return NULL;
-	int* t = (int*)calloc( 2, sizeof( int ) );
-	if( !t ) return NULL;
-	pItem->nKey = 0;
-	pItem->pTab = t;
+	int j = ( n==0 ) ?  2 : 1; //////////////////   Jakos lepiej?
+	for( int i = n; i>0; i /= 10 ) j++; ////////////////
+	pItem->sName = (char*)calloc( j, sizeof( char ) );
+	if( !pItem->sName ) return NULL;
+	pItem->nKey = n;
+	itoa(n, pItem->sName,10);
 	return pItem;
 }

@@ -3,8 +3,8 @@
 typedef struct
 {
 	int nKey;
-	int* pTab;
+	char* sName;
 }PQInfo;
 #define PQINFO PQInfo
 
-PQINFO* AllocateUsertype( );
+PQINFO* AllocateUsertype( int n );
