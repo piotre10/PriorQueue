@@ -1,8 +1,8 @@
 #pragma once
 #include "global.h"
 
-#define PRIOR_ERROR 0
-#define POS_ERROR -1
+#define PRIOR_ERROR -1
+#define POS_ERROR -2
 
 
 typedef struct 

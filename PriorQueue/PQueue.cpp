@@ -23,7 +23,7 @@ int PQisEmpty( PQueue* q )
 }
 int PQSize( PQueue* q )
 {
-	return ( !q ) ? 0 : q->nPQCurrSize;
+	return ( !q ) ? PRIOR_ERROR : q->nPQCurrSize;
 }
 int PQMaxPrior( PQueue* q )
 {
@@ -32,14 +32,15 @@ int PQMaxPrior( PQueue* q )
 int PQEnqueue( PQueue* q, PQINFO* pInfo, int prior )
 { 
 	if( !q ) return 0;
-	if( PQSize( q )>=q->nPQSize ) return 0;
-	q->pPQueue[PQSize( q )].pInfo = pInfo;
-	q->pPQueue[PQSize( q )].nPrior = prior;
-	UpdateUp( q->pPQueue, 0, PQSize( q ) );
+	int nSize = PQSize( q );
+	if( nSize<0 || nSize >=q->nPQSize ) return POS_ERROR;
+	q->pPQueue[nSize].pInfo = pInfo;
+	q->pPQueue[nSize].nPrior = prior;
+	UpdateUp( q->pPQueue, 0, nSize);
 	q->nPQCurrSize++;
 	return 1;
 }
-PQINFO* PQDequeue( PQueue* q ) 
+PQINFO* PQDequeue( PQueue* q )  // Do poprawki
 { 
 	if( PQisEmpty(q) ) return NULL;
 	PQINFO* pInfo = q->pPQueue->pInfo;
@@ -49,8 +50,9 @@ PQINFO* PQDequeue( PQueue* q )
 		q->pPQueue[0] = q->pPQueue[index];
 		memset( &q->pPQueue[index], 0, sizeof( PQItem ) );
 		UpdateDown( q->pPQueue, 0, index-1 );
+		return pInfo;
 	}
-	return pInfo;
+	return NULL;
 }
 void PQClear( PQueue* q, void( *FreeMem )( const void* ) )
 {
@@ -123,7 +125,7 @@ int PQgetPrior( PQueue* q, int index )
 int PQFind( PQueue* q, PQINFO* pInfo, int( *CompareInfo )( const void*, const void* ) )
 { 
 	if( !q ) return PRIOR_ERROR;
-	if( !CompareInfo ) POS_ERROR;
+	if( !CompareInfo ) return POS_ERROR;
 	for(int i=0; i<PQSize(q); i++ )
 		if( !CompareInfo( q->pPQueue[i].pInfo, pInfo ) ) return i;
 	return POS_ERROR;
@@ -163,7 +165,7 @@ void UpdateUp( PQItem* pTab, int l, int p )
 	{
 		pTab[i] = pTab[j];
 		i = j;
-		j = ( i-1 )/2;  // (i+1)/2 - 1  ????
+		j = ( i+1 )/2 - 1;  // = (i-1)/2 ??
 	}
 	pTab[i] = x;
 }
