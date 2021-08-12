@@ -27,32 +27,27 @@ int PQSize( PQueue* q )
 }
 int PQMaxPrior( PQueue* q )
 {
-	return PQgetPrior( q, 0 );
+	return PQgetPrior( q, 0 );  // jesli q pusta PQgetPrior zwroci PRIOR_ERROR
 }
 int PQEnqueue( PQueue* q, PQINFO* pInfo, int prior )
 { 
 	if( !q ) return 0;
 	int nSize = PQSize( q );
-	if( nSize<0 || nSize >=q->nPQSize ) return POS_ERROR;
 	q->pPQueue[nSize].pInfo = pInfo;
 	q->pPQueue[nSize].nPrior = prior;
-	UpdateUp( q->pPQueue, 0, nSize);
+	if( nSize>0 ) UpdateUp( q->pPQueue, 0, nSize );
 	q->nPQCurrSize++;
 	return 1;
 }
-PQINFO* PQDequeue( PQueue* q )  // Do poprawki
+PQINFO* PQDequeue( PQueue* q )
 { 
 	if( PQisEmpty(q) ) return NULL;
 	PQINFO* pInfo = q->pPQueue->pInfo;
-	int index = -- q->nPQCurrSize;
-	if( index>0 && index < q->nPQSize )
-	{
-		q->pPQueue[0] = q->pPQueue[index];
-		memset( &q->pPQueue[index], 0, sizeof( PQItem ) );
-		UpdateDown( q->pPQueue, 0, index-1 );
-		return pInfo;
-	}
-	return NULL;
+	int index = -- q->nPQCurrSize;    // PQisEmpty == 0 wiec index jest dobrym indeksem
+	q->pPQueue[0] = q->pPQueue[index]; 
+	memset( &q->pPQueue[index], 0, sizeof( PQItem ) );
+	if( index>1 ) UpdateDown( q->pPQueue, 0, index-1 );
+	return pInfo;
 }
 void PQClear( PQueue* q, void( *FreeMem )( const void* ) )
 {
@@ -80,7 +75,7 @@ void PQPrint( PQueue* q, void( *PrintInfo )( const void* ), int i )
 {
 	if( !q || i<0 )
 	{
-		printf( "Error: Queue does not exist (2)" );
+		printf( "Error: Queue does not exist or index is invalid (2)" );
 		return;
 	}
 	if( i>=PQSize( q ) ) return;
@@ -100,14 +95,13 @@ int PQsetPrior( PQueue* q, int index, int prior )
 {
 	if( !q ) return PRIOR_ERROR;
 	int res = PQgetPrior(q, index);
-	if( res!=PRIOR_ERROR )
+	if( res!=PRIOR_ERROR && res!=POS_ERROR )
 	{
-		int old_prior = q->pPQueue[index].nPrior;
 		q->pPQueue[index].nPrior = prior;
-		if(prior<old_prior) UpdateDown( q->pPQueue, index, PQSize(q)-1 );
+		if(prior<res) UpdateDown( q->pPQueue, index, PQSize(q)-1 );
 		else UpdateUp( q->pPQueue, 0, index );
 	}
-	return POS_ERROR;
+	return res;
 }
 int PQGetPrior( PQueue* q, PQINFO* pInfo, int( *CompareInfo )( const void*, const void* ) )
 {
@@ -165,7 +159,7 @@ void UpdateUp( PQItem* pTab, int l, int p )
 	{
 		pTab[i] = pTab[j];
 		i = j;
-		j = ( i+1 )/2 - 1;  // = (i-1)/2 ??
+		j = ( i+1 )/2 - 1;
 	}
 	pTab[i] = x;
 }
