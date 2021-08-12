@@ -40,11 +40,11 @@ int PQEnqueue( PQueue* q, PQINFO* pInfo, int prior )
 	return 1;
 }
 PQINFO* PQDequeue( PQueue* q )
-{ 
-	if( PQisEmpty(q) ) return NULL;
+{
+	if( PQisEmpty( q ) ) return NULL;
 	PQINFO* pInfo = q->pPQueue->pInfo;
-	int index = -- q->nPQCurrSize;    // PQisEmpty == 0 wiec index jest dobrym indeksem
-	q->pPQueue[0] = q->pPQueue[index]; 
+	int index = --q->nPQCurrSize;
+	if( index>0 ) q->pPQueue[0] = q->pPQueue[index];
 	memset( &q->pPQueue[index], 0, sizeof( PQItem ) );
 	if( index>1 ) UpdateDown( q->pPQueue, 0, index-1 );
 	return pInfo;
