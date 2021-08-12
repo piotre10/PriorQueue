@@ -99,7 +99,7 @@ int PQsetPrior( PQueue* q, int index, int prior )
 	{
 		q->pPQueue[index].nPrior = prior;
 		if(prior<res) UpdateDown( q->pPQueue, index, PQSize(q)-1 );
-		else UpdateUp( q->pPQueue, 0, index );
+		else if(index>0) UpdateUp( q->pPQueue, 0, index );
 	}
 	return res;
 }
