@@ -1,8 +1,10 @@
 #pragma once
 #include "global.h"
+#include <stdio.h>
+#include <limits.h>
 
-#define PRIOR_ERROR -1
-#define POS_ERROR -2
+#define PRIOR_ERROR INT_MIN
+#define POS_ERROR -1
 
 
 typedef struct 

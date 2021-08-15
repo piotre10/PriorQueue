@@ -52,7 +52,7 @@ int main()
 	}
 	int index = PQFind( pTestingQueue, pSought, CompareUsertype );
 	int unique_prior = 2;
-	printf("Index of sought item: %d\n", index);
+	printf("\nIndex of sought item: %d\n", index);
 	PQsetPrior( pTestingQueue, index, unique_prior  );
 	pSought->nKey = 2;
 	unique_prior = 17;
