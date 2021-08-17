@@ -1,5 +1,6 @@
 #include "PQueue.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 
@@ -26,13 +27,13 @@ int PQSize( PQueue* q )
 }
 int PQMaxPrior( PQueue* q )
 {
-	return PQisEmpty( q ) ? PRIOR_ERROR : PQgetPrior( q, 0 );
+	return ( PQisEmpty( q ) ) ? PRIOR_ERROR : PQgetPrior( q, 0 );
 }
 int PQEnqueue( PQueue* q, PQINFO* pInfo, int prior )
 { 
 	if( !q ) return 0;
 	int nSize = PQSize( q );
-	if( nSize >= q->nPQSize ) return POS_ERROR;
+	if( nSize >= q->nPQSize ) return 0;
 	q->pPQueue[nSize].pInfo = pInfo;
 	q->pPQueue[nSize].nPrior = prior;
 	if( nSize>0 ) UpdateUp( q->pPQueue, 0, nSize );
@@ -98,8 +99,8 @@ int PQsetPrior( PQueue* q, int index, int prior )
 	if( res!=PRIOR_ERROR && res!=POS_ERROR )
 	{
 		q->pPQueue[index].nPrior = prior;
-		if(prior<res) UpdateDown( q->pPQueue, index, PQSize(q)-1 );
-		else if(index>0) UpdateUp( q->pPQueue, 0, index );
+		if( prior<res ) UpdateDown( q->pPQueue, index, PQSize( q )-1 );
+		else if( prior>res ) UpdateUp( q->pPQueue, 0, index );
 	}
 	return res;
 }

@@ -1,6 +1,5 @@
 #pragma once
 #include "global.h"
-#include <stdio.h>
 #include <limits.h>
 
 #define PRIOR_ERROR INT_MIN
